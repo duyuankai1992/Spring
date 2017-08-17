@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd">
+
+	
+	
+	<context:component-scan base-package="com.yztc.demo"/>
+	
+	<util:properties id="jdbcprop" location="classpath:db.properties"></util:properties>
+
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="#{jdbcprop.driverName}"/>
+		<property name="jdbcUrl" value="#{jdbcprop.url}"/>
+		<property name="user" value="#{jdbcprop.user}"/>
+		<property name="password" value="#{jdbcprop.password}"/>
+	</bean>
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	<!-- 声明式事务处理 -->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>	
+	<!-- 
+	   配置事务的传播行为和隔离级别 
+	  isolation,事务的隔离级别
+	  propagation，事务的传播行为	
+	-->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="delete*" isolation="DEFAULT" propagation="REQUIRED"/>
+			<tx:method name="update*" isolation="DEFAULT" propagation="REQUIRED"/>
+			<tx:method name="save*" isolation="DEFAULT" propagation="REQUIRED"/>
+			<tx:method name="find*" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- AOP指定哪些包中的哪些类 应用事务 -->
+	<aop:config>
+		<aop:pointcut expression="within(com.yztc.demo.service.impl.*)" id="pc"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="pc"/>
+	</aop:config>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+</beans>
